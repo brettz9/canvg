@@ -1,17 +1,17 @@
-const Promise = require("bluebird"),
-  BlinkDiff = require("blink-diff");
+const Promise = require('bluebird'), // eslint-disable-line no-shadow
+  BlinkDiff = require('blink-diff');
 
 /**
- * Compares two images with a given threshold
- * If images differ above the threshold, output them to a diff folder
+ * Compares two images with a given threshold.
+ * If images differ above the threshold, output them to a diff folder.
  *
- * @param  {Buffer|}   canvasBuffer     The canvas buffer
- * @param  {<type>}   expectedImg      The expected image
- * @param  {<type>}   imageOutputPath  The image output path
- * @param  {<type>}   threshold        The threshold
- * @return {Promise}  { description_of_the_return_value }
+ * @param  {Buffer}   canvasBuffer     The canvas buffer
+ * @param  {string}   expectedImg      The expected image
+ * @param  {string}   imageOutputPath  The image output path
+ * @param  {Float}   threshold        The threshold
+ * @returns {Promise}
  */
-async function runDiff(canvasBuffer, expectedImg, imageOutputPath, threshold) {
+function runDiff (canvasBuffer, expectedImg, imageOutputPath, threshold) {
   const diff = new BlinkDiff({
     imageA: canvasBuffer,
     imageB: expectedImg,
@@ -23,18 +23,18 @@ async function runDiff(canvasBuffer, expectedImg, imageOutputPath, threshold) {
     outputMaskRed: 0,
     outputMaskBlue: 255, // Use blue for highlighting differences
 
-    imageOutputPath: imageOutputPath,
+    imageOutputPath,
     imageOutputLimit: BlinkDiff.OUTPUT_DIFFERENT
   });
 
-  return new Promise((resolve, reject) => {
-    diff.run(function(error, result) {
+  return new Promise((resolve, reject) => { // eslint-disable-line promise/avoid-new
+    diff.run(function (error, result) {
       if (error) {
         reject(error);
       } else {
-        let res = diff.hasPassed(result.code) ? true : false;
-        //console.log('Found ' + result.differences + ' differences.');
-        resolve({ res, differences: result.differences });
+        const res = diff.hasPassed(result.code);
+        // console.log('Found ' + result.differences + ' differences.');
+        resolve({res, differences: result.differences});
       }
     });
   });

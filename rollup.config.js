@@ -1,46 +1,46 @@
 /* eslint-env node */
-import resolve from "rollup-plugin-node-resolve";
-import commonjs from "rollup-plugin-commonjs";
-import json from "rollup-plugin-json";
-import replace from "rollup-plugin-replace";
-import alias from "rollup-plugin-alias";
-import pkgConfig from "./package.json";
+import resolve from 'rollup-plugin-node-resolve';
+import commonjs from 'rollup-plugin-commonjs';
+import json from 'rollup-plugin-json';
+import replace from 'rollup-plugin-replace';
+import babel from 'rollup-plugin-babel';
+import {terser} from 'rollup-plugin-terser';
+import pkgConfig from './package.json';
 
-let is_node = process.env.IS_NODE === "1";
+const isNode = process.env.IS_NODE === '1'; // eslint-disable-line no-process-env
+const isES = process.env.IS_ES === '1'; // eslint-disable-line no-process-env
+const isMin = process.env.IS_MIN === '1'; // eslint-disable-line no-process-env
 
-let globals = { "stackblur-canvas": "StackBlur", rgbcolor: "RGBColor", canvas: "Canvas" };
-let external = ["stackblur-canvas", "rgbcolor", "canvas"];
+const globals = {rgbcolor: 'RGBColor', canvas: 'Canvas'};
+let external = ['rgbcolor', 'canvas']; // eslint-disable-line no-shadow
 
-let plugins = [
+const plugins = [
   replace({
-    "nodeEnv = isNode": is_node ? "nodeEnv = true;" : "nodeEnv = false;"
+    'nodeEnv = isNode': isNode ? 'nodeEnv = true' : 'nodeEnv = false'
   }),
   commonjs(),
   resolve(),
-  json()
+  json(),
+  babel()
 ];
-
-if (is_node) {
-  external = external.concat(["xmldom", "jsdom"]);
-  globals.xmldom = "xmldom";
-  globals.jsdom = "jsdom";
-} else {
-  plugins = [
-    alias({
-      jsdom: "./dummy.js",
-      xmldom: "./dummy.js"
-    })
-  ].concat(plugins);
+if (isMin) {
+  plugins.push(terser());
 }
 
-let input = "./src/canvg.js",
-  output = {
-    file: is_node ? "./dist/node/canvg.js" : "./dist/browser/canvg.js",
-    format: "umd",
-    exports: "default",
-    name: "canvg",
+if (isNode) {
+  external = external.concat(['xmldom', 'jsdom']);
+  globals.xmldom = 'xmldom';
+  globals.jsdom = 'jsdom';
+}
 
-    globals: globals,
+const input = './src/canvg.js',
+  output = {
+    file: isNode ? './dist/node/canvg.js' : `./dist/browser/canvg${isES ? '-es' : ''}${isMin ? '.min' : ''}.js`,
+    format: isES ? 'es' : 'umd',
+    exports: 'default',
+    name: 'canvg',
+
+    globals,
     banner: `
 /*
  * canvg.js - Javascript SVG parser and renderer on Canvas
@@ -55,8 +55,8 @@ let input = "./src/canvg.js",
   };
 
 export default {
-  input: input,
-  plugins: plugins,
-  output: output,
-  external: external
+  input,
+  plugins,
+  output,
+  external
 };

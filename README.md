@@ -63,19 +63,17 @@ Put a canvas on your page
 ```
 
 Example canvg calls:
-```html
-<script>
-window.onload = function() {
-  //load '../path/to/your.svg' in the canvas with id = 'canvas'
-  canvg('canvas', '../path/to/your.svg')
+```js
+window.onload = function () {
+  // load '../path/to/your.svg' in the canvas with id = 'canvas'
+  canvg('canvas', '../path/to/your.svg');
 
-  //load a svg snippet in the canvas with id = 'drawingArea'
-  canvg(document.getElementById('drawingArea'), '<svg>...</svg>')
+  // load a svg snippet in the canvas with id = 'drawingArea'
+  canvg(document.getElementById('drawingArea'), '<svg>...</svg>');
 
-  //ignore mouse events and animation
-  canvg('canvas', 'file.svg', { ignoreMouse: true, ignoreAnimation: true })
-}
-</script>
+  // ignore mouse events and animation
+  canvg('canvas', 'file.svg', {ignoreMouse: true, ignoreAnimation: true});
+};
 ```
 
 The third parameter is options:
@@ -97,7 +95,7 @@ You can call canvg without parameters to replace all svg images on a page. See t
 
 There is also a built in extension method to the canvas context to draw svgs similar to the way [drawImage](http://www.w3.org/TR/2dcontext/#dom-context-2d-drawimage) works:
 ```javascript
-var c = document.getElementById('canvas');
-var ctx = c.getContext('2d');
+const c = document.getElementById('canvas');
+const ctx = c.getContext('2d');
 ctx.drawSvg(SVG_XML_OR_PATH_TO_SVG, dx, dy, dw, dh);
 ```

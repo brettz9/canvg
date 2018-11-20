@@ -1,30 +1,32 @@
-const Promise = require("bluebird"),
-  handler = require("serve-handler"),
-  http = require("http");
+const http = require('http');
+const Promise = require('bluebird'), // eslint-disable-line no-shadow
+  handler = require('serve-handler');
 
-Promise.Deferred = function() {
-  var resolve, reject;
-  var _promise = new Promise(function() {
-    resolve = arguments[0];
-    reject = arguments[1];
+Promise.Deferred = function () {
+  let resolve, reject;
+  const _promise = new Promise(function (res, rej) { // eslint-disable-line promise/avoid-new, promise/param-names
+    resolve = res;
+    reject = rej;
   });
 
-  var promise = function() {
+  const promise = function () {
     return _promise;
   };
 
   return {
-    resolve: resolve,
-    reject: reject,
-    promise: promise
+    resolve,
+    reject,
+    promise
   };
 };
 
 /**
  * Normalize a port into a number, string, or false.
+ * @param {string|number} val
+ * @returns {string|number|boolean}
  */
-function normalizePort(val) {
-  var port = parseInt(val, 10);
+function normalizePort (val) {
+  const port = parseInt(val);
 
   if (isNaN(port)) {
     // named pipe
@@ -39,7 +41,7 @@ function normalizePort(val) {
   return false;
 }
 
-const initServer = function(port) {
+const initServer = function (port) {
   const server = http.createServer((request, response) => {
     // You pass two more arguments for config and middleware
     // More details here: https://github.com/zeit/serve-handler#options
@@ -49,36 +51,38 @@ const initServer = function(port) {
   /**
    * Get port from environment and store in Express.
    */
-  const normalizedPort = normalizePort(port || process.env.PORT || 3123);
+  const normalizedPort = normalizePort(port || process.env.PORT || 3123); // eslint-disable-line no-process-env
 
   /**
    * Event listener for HTTP server "error" event.
+   * @param {Error} error
+   * @returns {undefined}
    */
-  function onError(error) {
-    if (error.syscall !== "listen") {
+  function onError (error) {
+    if (error.syscall !== 'listen') {
       throw error;
     }
 
-    let bind =
-      typeof normalizedPort === "string"
-        ? "Pipe " + normalizedPort
-        : "Port " + normalizedPort;
+    const bind =
+      typeof normalizedPort === 'string'
+        ? 'Pipe ' + normalizedPort
+        : 'Port ' + normalizedPort;
 
     // handle specific listen errors with friendly messages
     let errmsg;
     switch (error.code) {
-      case "EACCES":
-        errmsg = `${bind} requires elevated privileges`;
-        console.error(errmsg);
-        // closeMe();
-        break;
-      case "EADDRINUSE":
-        errmsg = `${bind} is already in use`;
-        console.error();
-        // closeMe();
-        break;
-      default:
-        throw error;
+    case 'EACCES':
+      errmsg = `${bind} requires elevated privileges`;
+      console.error(errmsg);
+      // closeMe();
+      break;
+    case 'EADDRINUSE':
+      errmsg = `${bind} is already in use`;
+      console.error();
+      // closeMe();
+      break;
+    default:
+      throw error;
     }
   }
 
@@ -86,25 +90,26 @@ const initServer = function(port) {
 
   /**
    * Event listener for HTTP server "listening" event.
+   * @returns {undefined}
    */
-  function onListening() {
-    var addr = server.address();
-    var bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
+  function onListening () {
+    const addr = server.address();
+    const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
     console.log(`Listening on ${bind}`);
   }
 
-  server.on("error", onError);
-  server.once("listening", onListening);
+  server.on('error', onError);
+  server.once('listening', onListening);
 
-  server.on("close", function() {
+  server.on('close', function () {
     console.log(`Closing server on ${normalizedPort}`);
   });
 
-  process.on("SIGTERM", function() {
+  process.on('SIGTERM', function () {
     server.close();
   });
 
-  process.on("SIGINT", function() {
+  process.on('SIGINT', function () {
     server.close();
   });
 
@@ -117,9 +122,10 @@ const initServer = function(port) {
 };
 
 if (require.main === module) {
-  let server = initServer(3123);
-  server.ready.promise().then(() => {
-    console.log("Server ready");
-  });
+  const server = initServer(3123);
+  (async () => {
+    await server.ready.promise();
+    console.log('Server ready');
+  })();
 }
 module.exports = initServer;

@@ -1,46 +1,48 @@
-const path = require("path"),
-  Promise = require("bluebird"),
-  fs = Promise.promisifyAll(require("fs")),
-  mkdirp = require("mkdirp"),
-  mkdirAsync = Promise.promisify(mkdirp);
+const path = require('path'),
+  f = require('fs');
+const Promise = require('bluebird'), // eslint-disable-line no-shadow
+  mkdirp = require('mkdirp');
 
+const mkdirAsync = Promise.promisify(mkdirp),
+  fs = Promise.promisifyAll(f);
 /**
  * Create folders for actual generates files and diff between
- * then and expected result
+ * then and expected result.
  *
- * @param  {string}   folder_actual  The folder for actual generated images
- * @param  {string}   folder_diff    The folder for differences
- * @return {Promise}  { description_of_the_return_value }
+ * @param  {string}   folderActual  The folder for actual generated images
+ * @param  {string}   folderDiff    The folder for differences
+ * @param  {string}   group
+ * @returns {Promise}  { description_of_the_return_value }
  */
-async function createDirs(folder_actual, folder_diff, group) {
-  let oldUmask = process.umask(0);
+async function createDirs (folderActual, folderDiff, group) {
+  const oldUmask = process.umask(0);
 
-  await mkdirAsync(folder_actual);
-  await mkdirAsync(folder_diff);
+  await mkdirAsync(folderActual);
+  await mkdirAsync(folderDiff);
   process.umask(oldUmask);
 
-  let actual_files = await fs.readdirAsync(folder_actual);
-  let diff_files = await fs.readdirAsync(folder_diff);
+  const actualFiles = await fs.readdirAsync(folderActual);
+  const diffFiles = await fs.readdirAsync(folderDiff);
 
-  let removal_actual_files = actual_files.map(file => {
+  const removalActualFiles = actualFiles.map((file) => {
     if (!group || file.indexOf(group) === 0) {
       return fs
-        .unlinkAsync(path.resolve(`${folder_actual}/${file}`))
-        .catch((/* err */) => {});
+        .unlinkAsync(path.resolve(`${folderActual}/${file}`))
+        .catch((/* err */) => { /* */ });
     }
-    return;
+    return undefined;
   });
-  let removal_diff_files = diff_files.map(file => {
+  const removalDiffFiles = diffFiles.map((file) => {
     if (!group || file.indexOf(group) === 0) {
       return fs
-        .unlinkAsync(path.resolve(`${folder_diff}/${file}`))
-        .catch((/* err */) => {});
+        .unlinkAsync(path.resolve(`${folderDiff}/${file}`))
+        .catch((/* err */) => { /* */ });
     }
-    return;
+    return undefined;
   });
 
-  await Promise.all(removal_actual_files);
-  await Promise.all(removal_diff_files);
+  await Promise.all(removalActualFiles);
+  await Promise.all(removalDiffFiles);
 }
 
 module.exports = createDirs;

@@ -1,61 +1,61 @@
-var path = require("path"),
-  Promise = require("bluebird"),
-  fs = Promise.promisifyAll(require("fs")),
-  createDirs = require(path.resolve(`${__dirname}/_create_dirs.js`)),
+const path = require('path'),
+  f = require('fs');
+const Promise = require('bluebird'), // eslint-disable-line no-shadow
+  test = require('ava');
+
+const createDirs = require(path.resolve(`${__dirname}/_create_dirs.js`)),
   runDiff = require(path.resolve(`${__dirname}/_run_diff.js`)),
   getBuffersNode = require(path.resolve(`${__dirname}/_get_buffers_node.js`)),
-  svgs = require(path.resolve(`${__dirname}/_svgs.js`)),
-  test = require("ava");
+  svgs = require(path.resolve(`${__dirname}/_svgs.js`));
 
-const actual_folder = path.resolve(`${__dirname}/actual_node`),
-  diff_folder = path.resolve(`${__dirname}/diff_node`);
+const fs = Promise.promisifyAll(f);
+
+const actualFolder = path.resolve(`${__dirname}/actual_node`),
+  diffFolder = path.resolve(`${__dirname}/diff_node`);
 
 test.before(async (/* t */) => {
-  await createDirs(actual_folder, diff_folder);
+  await createDirs(actualFolder, diffFolder);
 });
 
 const testFile = (file, group) => {
-  let description = svgs[group][file],
-    actual_path = path.resolve(`${actual_folder}/${group}_${file}.png`),
-    actual_file;
-  test(`comparing results for ${file} (${description})`, async t => {
-    return getBuffersNode(file)
-      .then(({ canvasBuffer, expectedImg }) => {
-        actual_file = canvasBuffer;
-        return runDiff(
-          canvasBuffer,
-          expectedImg,
-          `${diff_folder}/${group}_${file}.png`,
-          0.03
-        );
-      })
-      .then(async ({ res, differences }) => {
-        if (!res) {
-          await fs.writeFileAsync(actual_path, actual_file);
-          if (group === "broken") {
-            t.log(`skip broken ${file}`);
-            t.truthy.skip(`skip broken ${file}`);
-          } else {
-            t.fail(
-              `${file}.png has ${differences} differences with compared file`
-            );
-          }
+  const description = svgs[group][file],
+    actualPath = path.resolve(`${actualFolder}/${group}_${file}.png`);
+  let actualFile;
+  test(`comparing results for ${file} (${description})`, async (t) => {
+    try {
+      const {canvasBuffer, expectedImg} = await getBuffersNode(file);
+      actualFile = canvasBuffer;
+      const {res, differences} = await runDiff(
+        canvasBuffer,
+        expectedImg,
+        `${diffFolder}/${group}_${file}.png`,
+        0.03
+      );
+      if (!res) {
+        await fs.writeFileAsync(actualPath, actualFile);
+        if (group === 'broken') {
+          t.log(`skip broken ${file}`);
+          t.truthy.skip(`skip broken ${file}`);
         } else {
-          t.truthy(res);
+          t.fail(
+            `${file}.png has ${differences} differences with compared file`
+          );
         }
-      })
-      .catch(async err => {
-        await fs.writeFileAsync(actual_path, actual_file);
-        t.log(err);
-        t.fail(err.message);
-      });
+      } else {
+        t.truthy(res);
+      }
+    } catch (err) {
+      await fs.writeFileAsync(actualPath, actualFile);
+      t.log(err);
+      t.fail(err.message);
+    }
   });
 };
 
-for (let file in svgs["broken"]) {
-  testFile(file, "broken");
-}
+Object.keys(svgs.broken).forEach((file) => {
+  testFile(file, 'broken');
+});
 
-for (let file in svgs["passing"]) {
-  testFile(file, "passing");
-}
+Object.keys(svgs.passing).forEach((file) => {
+  testFile(file, 'passing');
+});
