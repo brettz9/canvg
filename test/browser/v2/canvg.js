@@ -252,12 +252,9 @@
 	  svg.ajax = function (url) {
 	    var AJAX;
 	    if (windowEnv.XMLHttpRequest) { AJAX = new windowEnv.XMLHttpRequest(); } else { AJAX = new ActiveXObject('Microsoft.XMLHTTP'); }
-	    if (AJAX) {
-	      AJAX.open('GET', url, false);
-	      AJAX.send(null);
-	      return AJAX.responseText;
-	    }
-	    return null;
+      AJAX.open('GET', url, false);
+      AJAX.send(null);
+      return AJAX.responseText;
 	  };
 
 	  // parse xml
